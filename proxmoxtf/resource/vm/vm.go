@@ -106,6 +106,7 @@ const (
 	dvMemoryShared                      = 0
 	dvMemoryHugepages                   = ""
 	dvMemoryKeepHugepages               = false
+	dvMemoryAllowKSM                    = true
 	dvMigrate                           = false
 	dvName                              = ""
 
@@ -266,6 +267,7 @@ const (
 	mkMemoryShared        = "shared"
 	mkMemoryHugepages     = "hugepages"
 	mkMemoryKeepHugepages = "keep_hugepages"
+	mkMemoryAllowKSM      = "allow_ksm"
 	mkMigrate             = "migrate"
 	mkName                = "name"
 
@@ -1180,6 +1182,7 @@ func VM() *schema.Resource {
 						mkMemoryShared:        dvMemoryShared,
 						mkMemoryHugepages:     dvMemoryHugepages,
 						mkMemoryKeepHugepages: dvMemoryKeepHugepages,
+						mkMemoryAllowKSM:      dvMemoryAllowKSM,
 					},
 				}, nil
 			},
@@ -1230,6 +1233,12 @@ func VM() *schema.Resource {
 						Optional:     true,
 						Default:      dvMemoryKeepHugepages,
 						RequiredWith: []string{"cpu.0.numa"},
+					},
+					mkMemoryAllowKSM: {
+						Type:        schema.TypeBool,
+						Description: "Allow memory pages of this VM to be merged via KSM (Kernel Samepage Merging)",
+						Optional:    true,
+						Default:     dvMemoryAllowKSM,
 					},
 				},
 			},
@@ -2753,6 +2762,10 @@ func vmCreateClone(ctx context.Context, d *schema.ResourceData, m any) diag.Diag
 		if keepHugepages {
 			updateBody.KeepHugepages = &keepHugepages
 		}
+
+		if allowKSM, ok := memoryBlock[mkMemoryAllowKSM].(bool); ok && !allowKSM {
+			updateBody.AllowKSM = types.CustomBool(false).Pointer()
+		}
 	}
 
 	networkDevice := d.Get(network.MkNetworkDevice).([]any)
@@ -3441,6 +3454,10 @@ func vmCreateCustom(ctx context.Context, d *schema.ResourceData, m any) diag.Dia
 
 	if memoryKeepHugepages {
 		createBody.KeepHugepages = &memoryKeepHugepages
+	}
+
+	if allowKSM, ok := memoryBlock[mkMemoryAllowKSM].(bool); ok && !allowKSM {
+		createBody.AllowKSM = types.CustomBool(false).Pointer()
 	}
 
 	if name != "" {
@@ -5307,6 +5324,12 @@ func vmReadCustom(
 		memory[mkMemoryKeepHugepages] = false
 	}
 
+	if vmConfig.AllowKSM != nil {
+		memory[mkMemoryAllowKSM] = bool(*vmConfig.AllowKSM)
+	} else {
+		memory[mkMemoryAllowKSM] = dvMemoryAllowKSM
+	}
+
 	currentMemory := d.Get(mkMemory).([]any)
 
 	if len(clone) > 0 {
@@ -5319,7 +5342,8 @@ func vmReadCustom(
 		memory[mkMemoryFloating] != dvMemoryFloating ||
 		memory[mkMemoryShared] != dvMemoryShared ||
 		memory[mkMemoryHugepages] != dvMemoryHugepages ||
-		memory[mkMemoryKeepHugepages] != dvMemoryKeepHugepages {
+		memory[mkMemoryKeepHugepages] != dvMemoryKeepHugepages ||
+		memory[mkMemoryAllowKSM] != dvMemoryAllowKSM {
 		err := d.Set(mkMemory, []any{memory})
 		diags = append(diags, diag.FromErr(err)...)
 	}
@@ -6862,7 +6886,8 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnosti
 			memoryFloating >= oldMemoryFloating &&
 			memoryShared >= oldMemoryShared &&
 			!d.HasChange(mkMemory+".0."+mkMemoryHugepages) &&
-			!d.HasChange(mkMemory+".0."+mkMemoryKeepHugepages)
+			!d.HasChange(mkMemory+".0."+mkMemoryKeepHugepages) &&
+			!d.HasChange(mkMemory+".0."+mkMemoryAllowKSM)
 
 		onlyHotpluggableChange := memoryIncreased && noNonHotpluggableChanges && isHotpluggable(d, "memory")
 
@@ -6891,6 +6916,15 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnosti
 				updateBody.KeepHugepages = &memoryKeepHugepages
 			} else {
 				del = append(del, "keephugepages")
+			}
+		}
+
+		// KSM is a QEMU machine flag (mem-merge=off), so a change needs a restart like hugepages.
+		if d.HasChange(mkMemory + ".0." + mkMemoryAllowKSM) {
+			if allowKSM, ok := memoryBlock[mkMemoryAllowKSM].(bool); ok && !allowKSM {
+				updateBody.AllowKSM = types.CustomBool(false).Pointer()
+			} else {
+				del = append(del, "allow-ksm")
 			}
 		}
 

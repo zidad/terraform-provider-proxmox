@@ -485,6 +485,10 @@ output "ubuntu_vm_public_key" {
         - `2` - 2MB hugepages.
         - `1024` - 1GB hugepages.
         - `any` - Any hugepages.
+    - `allow_ksm` - (Optional) Allow the VM's memory pages to be merged via KSM
+        (Kernel Samepage Merging) (defaults to `true`). Set it to `false` for VMs that
+        gain nothing from it, e.g. with PCI passthrough, where all guest memory is pinned.
+        Takes effect on the next VM start.
     - `keep_hugepages` - (Optional) Keep hugepages memory after the VM is stopped (defaults to `false`).
 
     Settings `hugepages` and `keep_hugepages` are only allowed for `root@pam` authenticated user.
