@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/migration"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
@@ -33,6 +34,15 @@ func (d *Datasource) Schema(
 		Attributes: map[string]schema.Attribute{
 			"cdrom": cdrom.DataSourceSchema(),
 			"cpu":   cpu.DataSourceSchema(),
+			"bios": schema.StringAttribute{
+				Description: "The BIOS implementation.",
+				Computed:    true,
+			},
+			"boot_order": schema.ListAttribute{
+				Description: "The boot order as a list of device slots.",
+				ElementType: types.StringType,
+				Computed:    true,
+			},
 			"description": schema.StringAttribute{
 				Description: "The description of the VM.",
 				Computed:    true,
@@ -40,6 +50,10 @@ func (d *Datasource) Schema(
 			"id": schema.Int64Attribute{
 				Required:    true,
 				Description: "The unique identifier of the VM in the Proxmox cluster.",
+			},
+			"machine": schema.StringAttribute{
+				Description: "The machine type.",
+				Computed:    true,
 			},
 			"name": schema.StringAttribute{
 				Description: "The name of the VM.",

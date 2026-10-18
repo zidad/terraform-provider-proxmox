@@ -29,9 +29,12 @@ Retrieves information about a specific VM.
 
 ### Read-Only
 
+- `bios` (String) The BIOS implementation.
+- `boot_order` (List of String) The boot order as a list of device slots.
 - `cdrom` (Attributes Map) The CD-ROM configuration. (see [below for nested schema](#nestedatt--cdrom))
 - `cpu` (Attributes) The CPU configuration. (see [below for nested schema](#nestedatt--cpu))
 - `description` (String) The description of the VM.
+- `machine` (String) The machine type.
 - `name` (String) The name of the VM.
 - `rng` (Attributes) The RNG (Random Number Generator) configuration. (see [below for nested schema](#nestedatt--rng))
 - `status` (String) The status of the VM (e.g., `running`, `stopped`).

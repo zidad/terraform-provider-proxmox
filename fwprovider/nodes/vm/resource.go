@@ -150,7 +150,10 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 func (r *Resource) create(ctx context.Context, plan Model, diags *diag.Diagnostics) {
 	createBody := &vms.CreateRequestBody{
+		BIOS:        attribute.StringPtrFromValue(plan.BIOS),
+		Boot:        bootOrderBody(ctx, plan.BootOrder, diags),
 		Description: plan.Description.ValueStringPointer(),
+		Machine:     attribute.StringPtrFromValue(plan.Machine),
 		Name:        plan.Name.ValueStringPointer(),
 		Tags:        plan.Tags.ValueStringPointer(ctx, diags),
 		VMID:        int(plan.ID.ValueInt64()),
@@ -258,9 +261,23 @@ func (r *Resource) update(ctx context.Context, plan, state Model, diags *diag.Di
 
 	updateBody := &vms.UpdateRequestBody{}
 
+	attribute.CheckDeleteBody(plan.BIOS, state.BIOS, updateBody, "bios")
 	attribute.CheckDeleteBody(plan.Description, state.Description, updateBody, "description")
+	attribute.CheckDeleteBody(plan.Machine, state.Machine, updateBody, "machine")
 	attribute.CheckDeleteBody(plan.Name, state.Name, updateBody, "name")
 	attribute.CheckDeleteBody(plan.Tags, state.Tags, updateBody, "tags")
+
+	if attribute.IsDefined(plan.BIOS) && !plan.BIOS.Equal(state.BIOS) {
+		updateBody.BIOS = plan.BIOS.ValueStringPointer()
+	}
+
+	if attribute.IsDefined(plan.Machine) && !plan.Machine.Equal(state.Machine) {
+		updateBody.Machine = plan.Machine.ValueStringPointer()
+	}
+
+	if attribute.IsDefined(plan.BootOrder) && !plan.BootOrder.Equal(state.BootOrder) {
+		updateBody.Boot = bootOrderBody(ctx, plan.BootOrder, diags)
+	}
 
 	if attribute.IsDefined(plan.Description) && !plan.Description.Equal(state.Description) {
 		updateBody.Description = plan.Description.ValueStringPointer()

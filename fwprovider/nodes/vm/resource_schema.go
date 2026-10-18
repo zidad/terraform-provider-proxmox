@@ -11,6 +11,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/migration"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
@@ -41,6 +43,27 @@ func (r *Resource) Schema(
 			"<br><br>It is a Proof of Concept, highly experimental and **will** change in future. " +
 			"It does not support all features of the Proxmox API for VMs and **MUST NOT** be used in production.",
 		Attributes: map[string]schema.Attribute{
+			"bios": schema.StringAttribute{
+				Description: "The BIOS implementation, e.g. `seabios` or `ovmf`. PVE uses `seabios` when unset.",
+				MarkdownDescription: "The BIOS implementation, e.g. `seabios` or `ovmf`. PVE uses `seabios` when unset. " +
+					"A change applies at the next VM start.",
+				Optional: true,
+			},
+			"boot_order": schema.ListAttribute{
+				Description: "The boot order as a list of device slots, e.g. `[\"scsi0\", \"ide2\", \"net0\"]`.",
+				MarkdownDescription: "The boot order as a list of device slots, e.g. `[\"scsi0\", \"ide2\", \"net0\"]`. " +
+					"When unset, PVE derives it and rewrites it as devices are added or removed; removing the attribute keeps the current order.",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.List{
+					bootOrderFollowsDevices{},
+				},
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueStringsAre(stringvalidator.LengthAtLeast(1)),
+				},
+			},
 			"cdrom": cdrom.ResourceSchema(),
 			"cpu":   cpu.ResourceSchema(),
 			"description": schema.StringAttribute{
@@ -55,6 +78,12 @@ func (r *Resource) Schema(
 					int64planmodifier.RequiresReplace(),
 				},
 				Description: "The unique identifier of the VM in the Proxmox cluster.",
+			},
+			"machine": schema.StringAttribute{
+				Description: "The machine type, e.g. `q35` or `pc-i440fx-10.0`. PVE uses `i440fx` when unset.",
+				MarkdownDescription: "The machine type, e.g. `q35` or `pc-i440fx-10.0`. PVE uses `i440fx` when unset. " +
+					"A change applies at the next VM start.",
+				Optional: true,
 			},
 			"name": schema.StringAttribute{
 				Description:         "The name of the VM.",

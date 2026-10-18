@@ -31,11 +31,14 @@ The attributes are also marked as optional to allow the practitioner to set (or 
 
 ### Optional
 
+- `bios` (String) The BIOS implementation, e.g. `seabios` or `ovmf`. PVE uses `seabios` when unset. A change applies at the next VM start.
+- `boot_order` (List of String) The boot order as a list of device slots, e.g. `["scsi0", "ide2", "net0"]`. When unset, PVE derives it and rewrites it as devices are added or removed; removing the attribute keeps the current order.
 - `cdrom` (Attributes Map) The CD-ROM configuration. The key is the interface of the CD-ROM, could be one of `ideN`, `sataN`, `scsiN`, where N is the index of the interface. Note that `q35` machine type only supports `ide0` and `ide2` of IDE interfaces. (see [below for nested schema](#nestedatt--cdrom))
 - `cpu` (Attributes) The CPU configuration. (see [below for nested schema](#nestedatt--cpu))
 - `delete_unreferenced_disks_on_destroy` (Boolean) Set to true to delete unreferenced disks on destroy (defaults to `true`).
 - `description` (String) The description of the VM.
 - `id` (Number) The unique identifier of the VM in the Proxmox cluster.
+- `machine` (String) The machine type, e.g. `q35` or `pc-i440fx-10.0`. PVE uses `i440fx` when unset. A change applies at the next VM start.
 - `name` (String) The name of the VM. Doesn't have to be unique.
 - `purge_on_destroy` (Boolean) Set to true to purge the VM from backup configurations on destroy (defaults to `true`).
 - `rng` (Attributes) Configure the RNG (Random Number Generator) device. The RNG device provides entropy to guests to ensure good quality random numbers for guest applications that require them. Can only be set by `root@pam.` See the [Proxmox documentation](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_virtual_machines_settings) for more information. (see [below for nested schema](#nestedatt--rng))

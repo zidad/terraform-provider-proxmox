@@ -31,10 +31,13 @@ import (
 // Note: for computed fields / blocks we have to use an Object type (or an alias),
 // or a custom type in order to hold an unknown value.
 type Model struct {
+	BIOS                             types.String    `tfsdk:"bios"`
+	BootOrder                        types.List      `tfsdk:"boot_order"`
 	Description                      types.String    `tfsdk:"description"`
 	CDROM                            cdrom.Value     `tfsdk:"cdrom"`
 	CPU                              cpu.Value       `tfsdk:"cpu"`
 	ID                               types.Int64     `tfsdk:"id"`
+	Machine                          types.String    `tfsdk:"machine"`
 	Name                             types.String    `tfsdk:"name"`
 	NodeName                         types.String    `tfsdk:"node_name"`
 	RNG                              rng.Value       `tfsdk:"rng"`
@@ -51,10 +54,13 @@ type Model struct {
 // It excludes resource-only lifecycle fields (stop_on_destroy, purge_on_destroy,
 // delete_unreferenced_disks_on_destroy) that have no API representation.
 type DatasourceModel struct {
+	BIOS        types.String    `tfsdk:"bios"`
+	BootOrder   types.List      `tfsdk:"boot_order"`
 	CDROM       cdrom.Value     `tfsdk:"cdrom"`
 	CPU         cpu.Value       `tfsdk:"cpu"`
 	Description types.String    `tfsdk:"description"`
 	ID          types.Int64     `tfsdk:"id"`
+	Machine     types.String    `tfsdk:"machine"`
 	Name        types.String    `tfsdk:"name"`
 	NodeName    types.String    `tfsdk:"node_name"`
 	RNG         rng.Value       `tfsdk:"rng"`
@@ -103,6 +109,10 @@ func readForDatasource(ctx context.Context, client proxmox.Client, model *Dataso
 	model.Name = attribute.StringValueFromPtr(config.Name)
 
 	model.Template = attribute.BoolValueFromCustomBoolPtr(config.Template)
+
+	model.BIOS = types.StringPointerValue(config.BIOS)
+	model.Machine = types.StringPointerValue(config.Machine)
+	model.BootOrder = bootOrderValue(ctx, config.BootOrder, diags)
 
 	model.CPU = cpu.NewValue(ctx, config, diags)
 	model.RNG = rng.NewValue(ctx, config, diags)
@@ -153,6 +163,9 @@ func read(ctx context.Context, client proxmox.Client, model *Model, diags *diag.
 	model.Name = types.StringPointerValue(config.Name)
 	model.Tags = stringset.NewValueString(config.Tags, diags)
 	model.Template = types.BoolPointerValue(config.Template.PointerBool())
+	model.BIOS = types.StringPointerValue(config.BIOS)
+	model.Machine = types.StringPointerValue(config.Machine)
+	model.BootOrder = bootOrderValue(ctx, config.BootOrder, diags)
 
 	// Blocks
 	model.CPU = cpu.NewValue(ctx, config, diags)
