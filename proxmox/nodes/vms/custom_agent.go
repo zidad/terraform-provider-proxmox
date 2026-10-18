@@ -18,6 +18,7 @@ import (
 // CustomAgent handles QEMU agent parameters.
 type CustomAgent struct {
 	Enabled         *types.CustomBool `json:"enabled,omitempty"   url:"enabled,int"`
+	FreezeFS        *types.CustomBool `json:"freeze-fs,omitempty" url:"freeze-fs,omitempty,int"`
 	TrimClonedDisks *types.CustomBool `json:"fstrim_cloned_disks" url:"fstrim_cloned_disks,int"`
 	Type            *string           `json:"type"                url:"type"`
 }
@@ -31,6 +32,16 @@ func (r *CustomAgent) EncodeValues(key string, v *url.Values) error {
 			values = append(values, "enabled=1")
 		} else {
 			values = append(values, "enabled=0")
+		}
+	}
+
+	// Sent as freeze-fs-on-backup: PVE 8 and 9.0 know only that name, and qemu-server 9.1.6+
+	// keeps it as an alias of freeze-fs (snapshots, clones and backups).
+	if r.FreezeFS != nil {
+		if *r.FreezeFS {
+			values = append(values, "freeze-fs-on-backup=1")
+		} else {
+			values = append(values, "freeze-fs-on-backup=0")
 		}
 	}
 
@@ -72,6 +83,8 @@ func (r *CustomAgent) UnmarshalJSON(b []byte) error {
 			switch v[0] {
 			case "enabled":
 				r.Enabled = types.CustomBool(v[1] == "1").Pointer()
+			case "freeze-fs", "freeze-fs-on-backup", "guest-fsfreeze":
+				r.FreezeFS = types.CustomBool(v[1] == "1").Pointer()
 			case "fstrim_cloned_disks":
 				r.TrimClonedDisks = types.CustomBool(v[1] == "1").Pointer()
 			case "type":

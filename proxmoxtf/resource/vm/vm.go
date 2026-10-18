@@ -51,6 +51,7 @@ const (
 	dvAgentEnabled           = false
 	dvAgentTimeout           = "15m"
 	dvAgentTrim              = false
+	dvAgentFreezeFS          = true
 	dvAgentType              = "virtio"
 	dvAgentWaitForIPDisabled = false
 	dvAMDSEVType             = "std"
@@ -168,6 +169,7 @@ const (
 	mkAgentEnabled           = "enabled"
 	mkAgentTimeout           = "timeout"
 	mkAgentTrim              = "trim"
+	mkAgentFreezeFS          = "freeze_fs"
 	mkAgentType              = "type"
 	mkAgentWaitForIP         = "wait_for_ip"
 	mkAgentWaitForIPDisabled = "disabled"
@@ -382,10 +384,11 @@ func VM() *schema.Resource {
 			DefaultFunc: func() (any, error) {
 				return []any{
 					map[string]any{
-						mkAgentEnabled: dvAgentEnabled,
-						mkAgentTimeout: dvAgentTimeout,
-						mkAgentTrim:    dvAgentTrim,
-						mkAgentType:    dvAgentType,
+						mkAgentEnabled:  dvAgentEnabled,
+						mkAgentTimeout:  dvAgentTimeout,
+						mkAgentTrim:     dvAgentTrim,
+						mkAgentFreezeFS: dvAgentFreezeFS,
+						mkAgentType:     dvAgentType,
 					},
 				}, nil
 			},
@@ -409,6 +412,13 @@ func VM() *schema.Resource {
 						Description: "Whether to enable the FSTRIM feature in the QEMU agent",
 						Optional:    true,
 						Default:     dvAgentTrim,
+					},
+					mkAgentFreezeFS: {
+						Type: schema.TypeBool,
+						Description: "Whether to freeze guest filesystems through the QEMU agent for snapshots, " +
+							"clones and backups (only backups before qemu-server 9.1.6)",
+						Optional: true,
+						Default:  dvAgentFreezeFS,
 					},
 					mkAgentType: {
 						Type:             schema.TypeString,
@@ -2534,6 +2544,7 @@ func vmCreateClone(ctx context.Context, d *schema.ResourceData, m any) diag.Diag
 
 		updateBody.Agent = &vms.CustomAgent{
 			Enabled:         &agentEnabled,
+			FreezeFS:        vmAgentFreezeFS(agentBlock),
 			TrimClonedDisks: &agentTrim,
 			Type:            &agentType,
 		}
@@ -3349,6 +3360,7 @@ func vmCreateCustom(ctx context.Context, d *schema.ResourceData, m any) diag.Dia
 		ACPI: &acpi,
 		Agent: &vms.CustomAgent{
 			Enabled:         &agentEnabled,
+			FreezeFS:        vmAgentFreezeFS(agentBlock),
 			TrimClonedDisks: &agentTrim,
 			Type:            &agentType,
 		},
@@ -4432,6 +4444,12 @@ func vmReadCustom(
 				agent[mkAgentTrim] = false
 			}
 
+			if vmConfig.Agent.FreezeFS != nil {
+				agent[mkAgentFreezeFS] = bool(*vmConfig.Agent.FreezeFS)
+			} else {
+				agent[mkAgentFreezeFS] = dvAgentFreezeFS
+			}
+
 			if len(currentAgent) > 0 && currentAgent[0] != nil {
 				currentAgentBlock := currentAgent[0].(map[string]any)
 				currentAgentTimeout := currentAgentBlock[mkAgentTimeout].(string)
@@ -4469,6 +4487,7 @@ func vmReadCustom(
 				agent[mkAgentEnabled] != dvAgentEnabled ||
 				agent[mkAgentTimeout] != dvAgentTimeout ||
 				agent[mkAgentTrim] != dvAgentTrim ||
+				agent[mkAgentFreezeFS] != dvAgentFreezeFS ||
 				agent[mkAgentType] != dvAgentType {
 				err := d.Set(mkAgent, []any{agent})
 				diags = append(diags, diag.FromErr(err)...)
@@ -6361,6 +6380,7 @@ func vmUpdate(ctx context.Context, d *schema.ResourceData, m any) diag.Diagnosti
 
 		updateBody.Agent = &vms.CustomAgent{
 			Enabled:         &agentEnabled,
+			FreezeFS:        vmAgentFreezeFS(agentBlock),
 			TrimClonedDisks: &agentTrim,
 			Type:            &agentType,
 		}
@@ -8031,4 +8051,15 @@ func waitForVMOnNode(ctx context.Context, client proxmox.Client, vmID int, targe
 	}
 
 	return fmt.Errorf("VM %d did not migrate to node %s within timeout (last seen on %s)", vmID, targetNode, lastNodeStr)
+}
+
+// vmAgentFreezeFS returns the freeze-fs setting to send, or nil for the PVE default (on), so
+// configurations that never set it keep an unchanged agent string.
+func vmAgentFreezeFS(agentBlock map[string]any) *types.CustomBool {
+	freezeFS, ok := agentBlock[mkAgentFreezeFS].(bool)
+	if !ok || freezeFS {
+		return nil
+	}
+
+	return types.CustomBool(false).Pointer()
 }

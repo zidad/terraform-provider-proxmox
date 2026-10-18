@@ -130,6 +130,11 @@ output "ubuntu_vm_public_key" {
 - `agent` - (Optional) The QEMU agent configuration.
     - `enabled` - (Optional) Whether to enable the QEMU agent (defaults
         to `false`).
+    - `freeze_fs` - (Optional) Whether to freeze the guest filesystems through
+        the QEMU agent for snapshots, clones and backups (defaults to `true`). Before
+        qemu-server 9.1.6 this only affects backups (`freeze-fs-on-backup`). Set it to
+        `false` when a freeze can hang the guest, e.g. with iSCSI-backed volumes
+        attached inside it.
     - `timeout` - (Optional) The maximum amount of time to wait for data from
         the QEMU agent to become available ( defaults to `15m`).
     - `trim` - (Optional) Whether to enable the FSTRIM feature in the QEMU agent
