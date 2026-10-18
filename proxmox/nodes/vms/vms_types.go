@@ -57,6 +57,7 @@ type CloneRequestBody struct {
 // CreateRequestBody contains the data for a virtual machine create request.
 type CreateRequestBody struct {
 	ACPI                 *types.CustomBool              `json:"acpi,omitempty"               url:"acpi,omitempty,int"`
+	AllowKSM             *types.CustomBool              `json:"allow-ksm,omitempty"          url:"allow-ksm,omitempty,int"`
 	Agent                *CustomAgent                   `json:"agent,omitempty"              url:"agent,omitempty"`
 	AMDSEV               *CustomAMDSEV                  `json:"amd-sev,omitempty"            url:"amd-sev,omitempty"`
 	AllowReboot          *types.CustomBool              `json:"reboot,omitempty"             url:"reboot,omitempty,int"`
@@ -199,6 +200,7 @@ type GetResponseBody struct {
 // GetResponseData contains the data from an virtual machine get response.
 type GetResponseData struct {
 	ACPI                 *types.CustomBool               `json:"acpi,omitempty"`
+	AllowKSM             *types.CustomBool               `json:"allow-ksm,omitempty"`
 	Agent                *CustomAgent                    `json:"agent,omitempty"`
 	AMDSEV               *CustomAMDSEV                   `json:"amd-sev,omitempty"`
 	AllowReboot          *types.CustomBool               `json:"reboot,omitempty"`

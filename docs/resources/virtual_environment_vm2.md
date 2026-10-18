@@ -38,7 +38,10 @@ The attributes are also marked as optional to allow the practitioner to set (or 
 - `delete_unreferenced_disks_on_destroy` (Boolean) Set to true to delete unreferenced disks on destroy (defaults to `true`).
 - `description` (String) The description of the VM.
 - `id` (Number) The unique identifier of the VM in the Proxmox cluster.
+- `memory` (Attributes) Memory configuration for the VM. Uses Proxmox memory ballooning to allow dynamic memory allocation. The `size` sets the total available RAM, while `balloon` sets the guaranteed floor. The host can reclaim memory between these values when needed. (see [below for nested schema](#nestedatt--memory))
 - `name` (String) The name of the VM. Doesn't have to be unique.
+- `on_boot` (Boolean) Whether the VM starts when the node boots (PVE `onboot`). PVE default is `false`.
+- `power_state` (String) The desired power state of the VM: `running` or `stopped`. Defaults to `running`, or `stopped` for templates. A VM started or stopped outside Terraform shows as drift. Configuration changes that PVE cannot hotplug stay pending on a running VM until its next start; the provider does not reboot it.
 - `purge_on_destroy` (Boolean) Set to true to purge the VM from backup configurations on destroy (defaults to `true`).
 - `rng` (Attributes) Configure the RNG (Random Number Generator) device. The RNG device provides entropy to guests to ensure good quality random numbers for guest applications that require them. Can only be set by `root@pam.` See the [Proxmox documentation](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_virtual_machines_settings) for more information. (see [below for nested schema](#nestedatt--rng))
 - `stop_on_destroy` (Boolean) Set to true to stop (rather than shutdown) the VM on destroy (defaults to `false`).
@@ -46,6 +49,10 @@ The attributes are also marked as optional to allow the practitioner to set (or 
 - `template` (Boolean) Set to true to create a VM template.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `vga` (Attributes) Configure the VGA Hardware. If you want to use high resolution modes (>= 1280x1024x16) you may need to increase the vga memory option. Since QEMU 2.9 the default VGA display type is `std` for all OS types besides some Windows versions (XP and older) which use `cirrus`. The `qxl` option enables the SPICE display server. For win* OS you can select how many independent displays you want, Linux guests can add displays themself. You can also run without any graphic card, using a serial device as terminal. See the [Proxmox documentation](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_virtual_machines_settings) section 10.2.8 for more information and available configuration parameters. (see [below for nested schema](#nestedatt--vga))
+
+### Read-Only
+
+- `status` (String) The runtime status of the VM as reported by PVE, e.g. 'running' or 'stopped'.
 
 <a id="nestedatt--cdrom"></a>
 ### Nested Schema for `cdrom`
@@ -70,6 +77,26 @@ Optional:
 - `type` (String) Emulated CPU type, it's recommended to use `x86-64-v2-AES` or higher. See [the PVE admin guide](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_virtual_machines_settings) for the full list of supported types.
 - `units` (Number) CPU weight for a VM. Argument is used in the kernel fair scheduler. The larger the number is, the more CPU time this VM gets. Number is relative to weights of all the other running VMs. On cgroup v2 `0` is a valid value meaning disable CPU share weighting.
 - `vcpus` (Number) Number of vCPUs started with the VM, bounded by `cores * sockets`. Matches the PVE Processors → **VCPUs** field. Leave unset to start with `cores * sockets` vCPUs. Requires PVE hotplug feature enabled to change at runtime.
+
+
+<a id="nestedatt--memory"></a>
+### Nested Schema for `memory`
+
+Optional:
+
+- `allow_ksm` (Boolean) Allow memory pages of this VM to be merged via KSM (Kernel Samepage Merging). PVE default is `true`; `false` adds `mem-merge=off` to the QEMU machine flags, useful for VMs with PCI passthrough where all guest memory is pinned. Takes effect on the next VM start.
+- `balloon` (Number) Minimum guaranteed memory in MiB via balloon device. This is the floor amount of RAM that is always guaranteed to the VM. Setting to `0` disables the balloon driver entirely. 
+
+**How it works:** The host can reclaim memory between `balloon` and `size` when under memory pressure. The VM is guaranteed to always have at least `balloon` MiB available.
+- `hugepages` (String) Enable hugepages for VM memory allocation. Hugepages can improve performance for memory-intensive workloads by reducing TLB misses. 
+
+**Options:**
+- `2` - Use 2 MiB hugepages
+- `1024` - Use 1 GiB hugepages
+- `any` - Use any available hugepage size
+- `keep_hugepages` (Boolean) Don't release hugepages when the VM shuts down. By default, hugepages are released back to the host when the VM stops. Setting this to `true` keeps them allocated for faster VM startup.
+- `shares` (Number) CPU scheduler priority for memory ballooning. This is used by the kernel fair scheduler. Higher values mean this VM gets more CPU time during memory ballooning operations. The value is relative to other running VMs.
+- `size` (Number) Total memory available to the VM in MiB. This is the total RAM the VM can use. When ballooning is enabled (balloon > 0), memory between `balloon` and `size` can be reclaimed by the host. When ballooning is disabled (balloon = 0), this is the fixed amount of RAM allocated to the VM. Defaults to PVE's implicit `512` MiB when unset.
 
 
 <a id="nestedatt--rng"></a>

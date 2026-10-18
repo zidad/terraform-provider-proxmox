@@ -25,6 +25,7 @@ import (
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/config"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cpu"
+	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/memory"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/rng"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/vga"
 	"github.com/bpg/terraform-provider-proxmox/proxmox"
@@ -43,6 +44,7 @@ const (
 
 	// these timeouts are for individual PVE operations.
 	defaultShutdownTimeout = 5 * time.Minute
+	defaultStartTimeout    = 5 * time.Minute
 )
 
 var (
@@ -152,6 +154,7 @@ func (r *Resource) create(ctx context.Context, plan Model, diags *diag.Diagnosti
 	createBody := &vms.CreateRequestBody{
 		Description: plan.Description.ValueStringPointer(),
 		Name:        plan.Name.ValueStringPointer(),
+		StartOnBoot: attribute.CustomBoolPtrFromValue(plan.OnBoot),
 		Tags:        plan.Tags.ValueStringPointer(ctx, diags),
 		VMID:        int(plan.ID.ValueInt64()),
 	}
@@ -159,6 +162,7 @@ func (r *Resource) create(ctx context.Context, plan Model, diags *diag.Diagnosti
 	// fill out create body fields with values from other resource blocks
 	cdrom.FillCreateBody(ctx, plan.CDROM, createBody, diags)
 	cpu.FillCreateBody(ctx, plan.CPU, createBody, diags)
+	memory.FillCreateBody(ctx, plan.Memory, createBody, diags)
 	rng.FillCreateBody(ctx, plan.RNG, createBody, diags)
 	vga.FillCreateBody(ctx, plan.VGA, createBody, diags)
 
@@ -179,7 +183,11 @@ func (r *Resource) create(ctx context.Context, plan Model, diags *diag.Diagnosti
 
 		vmAPI = r.client.Node(plan.NodeName.ValueString()).VM(int(plan.ID.ValueInt64()))
 		vmAPI.ConvertToTemplate(ctx).AddDiags(diags, fmt.Sprintf("Unable to Convert VM %d to Template", plan.ID.ValueInt64()))
+
+		return
 	}
+
+	applyPowerState(ctx, r.client.Node(plan.NodeName.ValueString()).VM(int(plan.ID.ValueInt64())), plan, diags)
 }
 
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -261,6 +269,11 @@ func (r *Resource) update(ctx context.Context, plan, state Model, diags *diag.Di
 	attribute.CheckDeleteBody(plan.Description, state.Description, updateBody, "description")
 	attribute.CheckDeleteBody(plan.Name, state.Name, updateBody, "name")
 	attribute.CheckDeleteBody(plan.Tags, state.Tags, updateBody, "tags")
+	attribute.CheckDeleteBody(plan.OnBoot, state.OnBoot, updateBody, "onboot")
+
+	if !plan.OnBoot.Equal(state.OnBoot) {
+		updateBody.StartOnBoot = attribute.CustomBoolPtrFromValue(plan.OnBoot)
+	}
 
 	if attribute.IsDefined(plan.Description) && !plan.Description.Equal(state.Description) {
 		updateBody.Description = plan.Description.ValueStringPointer()
@@ -277,6 +290,7 @@ func (r *Resource) update(ctx context.Context, plan, state Model, diags *diag.Di
 	// fill out update body fields with values from other resource blocks
 	cdrom.FillUpdateBody(ctx, plan.CDROM, state.CDROM, updateBody, diags)
 	cpu.FillUpdateBody(ctx, plan.CPU, state.CPU, updateBody, diags)
+	memory.FillUpdateBody(ctx, plan.Memory, state.Memory, updateBody, diags)
 	rng.FillUpdateBody(ctx, plan.RNG, state.RNG, updateBody, diags)
 	vga.FillUpdateBody(ctx, plan.VGA, state.VGA, updateBody, diags)
 
@@ -320,6 +334,12 @@ func (r *Resource) update(ctx context.Context, plan, state Model, diags *diag.Di
 			return
 		}
 	}
+
+	if diags.HasError() {
+		return
+	}
+
+	applyPowerState(ctx, vmAPI, plan, diags)
 }
 
 // Delete deletes the VM.

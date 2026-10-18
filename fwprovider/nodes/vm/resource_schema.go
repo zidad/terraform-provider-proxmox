@@ -23,6 +23,7 @@ import (
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/migration"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cpu"
+	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/memory"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/rng"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/vga"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/types/stringset"
@@ -56,6 +57,7 @@ func (r *Resource) Schema(
 				},
 				Description: "The unique identifier of the VM in the Proxmox cluster.",
 			},
+			"memory": memory.ResourceSchema(),
 			"name": schema.StringAttribute{
 				Description:         "The name of the VM.",
 				MarkdownDescription: "The name of the VM. Doesn't have to be unique.",
@@ -71,7 +73,34 @@ func (r *Resource) Schema(
 				Description: "The name of the node where the VM is provisioned.",
 				Required:    true,
 			},
+			"on_boot": schema.BoolAttribute{
+				Description:         "Whether the VM starts when the node boots.",
+				MarkdownDescription: "Whether the VM starts when the node boots (PVE `onboot`). PVE default is `false`.",
+				Optional:            true,
+			},
+			"power_state": schema.StringAttribute{
+				Description: "The desired power state of the VM: 'running' or 'stopped'.",
+				MarkdownDescription: "The desired power state of the VM: `running` or `stopped`. Defaults to `running`, " +
+					"or `stopped` for templates. A VM started or stopped outside Terraform shows as drift. Configuration " +
+					"changes that PVE cannot hotplug stay pending on a running VM until its next start; the provider " +
+					"does not reboot it.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					powerStateDefault{},
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(powerStateRunning, powerStateStopped),
+				},
+			},
 			"rng": rng.ResourceSchema(),
+			"status": schema.StringAttribute{
+				Description: "The runtime status of the VM as reported by PVE, e.g. 'running' or 'stopped'.",
+				Computed:    true,
+				PlanModifiers: []planmodifier.String{
+					statusFollowsPowerState{},
+				},
+			},
 			"stop_on_destroy": schema.BoolAttribute{
 				Description:         "Set to true to stop (rather than shutdown) the VM on destroy.",
 				MarkdownDescription: "Set to true to stop (rather than shutdown) the VM on destroy (defaults to `false`).",

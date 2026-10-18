@@ -19,6 +19,7 @@ import (
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/attribute"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cpu"
+	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/memory"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/rng"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/vga"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/types/stringset"
@@ -35,9 +36,13 @@ type Model struct {
 	CDROM                            cdrom.Value     `tfsdk:"cdrom"`
 	CPU                              cpu.Value       `tfsdk:"cpu"`
 	ID                               types.Int64     `tfsdk:"id"`
+	Memory                           memory.Value    `tfsdk:"memory"`
 	Name                             types.String    `tfsdk:"name"`
 	NodeName                         types.String    `tfsdk:"node_name"`
+	OnBoot                           types.Bool      `tfsdk:"on_boot"`
+	PowerState                       types.String    `tfsdk:"power_state"`
 	RNG                              rng.Value       `tfsdk:"rng"`
+	Status                           types.String    `tfsdk:"status"`
 	StopOnDestroy                    types.Bool      `tfsdk:"stop_on_destroy"`
 	PurgeOnDestroy                   types.Bool      `tfsdk:"purge_on_destroy"`
 	DeleteUnreferencedDisksOnDestroy types.Bool      `tfsdk:"delete_unreferenced_disks_on_destroy"`
@@ -55,8 +60,10 @@ type DatasourceModel struct {
 	CPU         cpu.Value       `tfsdk:"cpu"`
 	Description types.String    `tfsdk:"description"`
 	ID          types.Int64     `tfsdk:"id"`
+	Memory      memory.Value    `tfsdk:"memory"`
 	Name        types.String    `tfsdk:"name"`
 	NodeName    types.String    `tfsdk:"node_name"`
+	OnBoot      types.Bool      `tfsdk:"on_boot"`
 	RNG         rng.Value       `tfsdk:"rng"`
 	Status      types.String    `tfsdk:"status"`
 	Tags        stringset.Value `tfsdk:"tags"`
@@ -104,7 +111,10 @@ func readForDatasource(ctx context.Context, client proxmox.Client, model *Dataso
 
 	model.Template = attribute.BoolValueFromCustomBoolPtr(config.Template)
 
+	model.OnBoot = attribute.BoolValueFromCustomBoolPtr(config.StartOnBoot)
+
 	model.CPU = cpu.NewValue(ctx, config, diags)
+	model.Memory = memory.NewValue(ctx, config, diags)
 	model.RNG = rng.NewValue(ctx, config, diags)
 	model.VGA = vga.NewValue(ctx, config, diags)
 	model.CDROM = cdrom.NewValue(ctx, config, diags)
@@ -153,13 +163,27 @@ func read(ctx context.Context, client proxmox.Client, model *Model, diags *diag.
 	model.Name = types.StringPointerValue(config.Name)
 	model.Tags = stringset.NewValueString(config.Tags, diags)
 	model.Template = types.BoolPointerValue(config.Template.PointerBool())
+	model.OnBoot = types.BoolPointerValue(config.StartOnBoot.PointerBool())
+	model.Status = types.StringValue(status.Status)
+	model.PowerState = types.StringValue(powerStateFromStatus(status.Status))
 
 	// Blocks
 	model.CPU = cpu.NewValue(ctx, config, diags)
+	model.Memory = memory.NewValue(ctx, config, diags)
 	model.RNG = rng.NewValue(ctx, config, diags)
 	model.VGA = vga.NewValue(ctx, config, diags)
 
 	model.CDROM = cdrom.NewValue(ctx, config, diags)
 
 	return true
+}
+
+// powerStateFromStatus maps the PVE runtime status onto power_state, so a VM stopped or started outside
+// Terraform shows as drift. Anything not running (stopped, paused, suspended) counts as stopped.
+func powerStateFromStatus(status string) string {
+	if status == powerStateRunning {
+		return powerStateRunning
+	}
+
+	return powerStateStopped
 }

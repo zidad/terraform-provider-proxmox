@@ -30,7 +30,9 @@ Retrieves information about a specific VM.
 - `cdrom` (Attributes Map) The CD-ROM configuration. (see [below for nested schema](#nestedatt--cdrom))
 - `cpu` (Attributes) The CPU configuration. (see [below for nested schema](#nestedatt--cpu))
 - `description` (String) The description of the VM.
+- `memory` (Attributes) The memory configuration. (see [below for nested schema](#nestedatt--memory))
 - `name` (String) The name of the VM.
+- `on_boot` (Boolean) Whether the VM starts when the node boots.
 - `rng` (Attributes) The RNG (Random Number Generator) configuration. (see [below for nested schema](#nestedatt--rng))
 - `status` (String) The status of the VM (e.g., `running`, `stopped`).
 - `tags` (Set of String) The tags assigned to the VM.
@@ -68,6 +70,19 @@ Read-Only:
 - `type` (String) Emulated CPU type.
 - `units` (Number) CPU weight for a VM
 - `vcpus` (Number) Number of active vCPUs.
+
+
+<a id="nestedatt--memory"></a>
+### Nested Schema for `memory`
+
+Read-Only:
+
+- `allow_ksm` (Boolean) Whether memory pages of this VM may be merged via KSM.
+- `balloon` (Number) Minimum guaranteed memory in MiB via balloon device; 0 disables the balloon device.
+- `hugepages` (String) Hugepages size used for VM memory: '2', '1024' or 'any'.
+- `keep_hugepages` (Boolean) Whether hugepages stay allocated when the VM is stopped.
+- `shares` (Number) CPU scheduler priority for memory ballooning.
+- `size` (Number) Total memory available to the VM in MiB.
 
 
 <a id="nestedatt--rng"></a>

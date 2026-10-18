@@ -16,6 +16,7 @@ import (
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/migration"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cdrom"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/cpu"
+	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/memory"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/rng"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/nodes/vm/vga"
 	"github.com/bpg/terraform-provider-proxmox/fwprovider/types/stringset"
@@ -49,7 +50,12 @@ func (d *Datasource) Schema(
 				Description: "The name of the node where the VM is provisioned.",
 				Required:    true,
 			},
-			"rng": rng.DataSourceSchema(),
+			"rng":    rng.DataSourceSchema(),
+			"memory": memory.DataSourceSchema(),
+			"on_boot": schema.BoolAttribute{
+				Description: "Whether the VM starts when the node boots.",
+				Computed:    true,
+			},
 			"status": schema.StringAttribute{
 				Description: "The status of the VM (e.g., `running`, `stopped`).",
 				Computed:    true,

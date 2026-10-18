@@ -94,6 +94,13 @@ func ResourceSchema() schema.Attribute {
 					"for faster VM startup.",
 				Optional: true,
 			},
+			"allow_ksm": schema.BoolAttribute{
+				Description: "Allow memory pages of this VM to be merged via KSM (Kernel Samepage Merging).",
+				MarkdownDescription: "Allow memory pages of this VM to be merged via KSM (Kernel Samepage Merging). " +
+					"PVE default is `true`; `false` adds `mem-merge=off` to the QEMU machine flags, useful for VMs with " +
+					"PCI passthrough where all guest memory is pinned. Takes effect on the next VM start.",
+				Optional: true,
+			},
 		},
 	}
 }

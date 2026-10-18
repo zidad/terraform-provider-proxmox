@@ -28,6 +28,7 @@ type Model struct {
 	Shares        types.Int64  `tfsdk:"shares"`
 	Hugepages     types.String `tfsdk:"hugepages"`
 	KeepHugepages types.Bool   `tfsdk:"keep_hugepages"`
+	AllowKSM      types.Bool   `tfsdk:"allow_ksm"`
 }
 
 func attributeTypes() map[string]attr.Type {
@@ -37,6 +38,7 @@ func attributeTypes() map[string]attr.Type {
 		"shares":         types.Int64Type,
 		"hugepages":      types.StringType,
 		"keep_hugepages": types.BoolType,
+		"allow_ksm":      types.BoolType,
 	}
 }
 
@@ -68,4 +70,5 @@ func (m *Model) toAPI(body *vms.CreateRequestBody) {
 
 	body.Hugepages = attribute.StringPtrFromValue(m.Hugepages)
 	body.KeepHugepages = attribute.CustomBoolPtrFromValue(m.KeepHugepages)
+	body.AllowKSM = attribute.CustomBoolPtrFromValue(m.AllowKSM)
 }

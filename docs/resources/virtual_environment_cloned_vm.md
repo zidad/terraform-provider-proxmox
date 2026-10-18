@@ -367,6 +367,7 @@ Optional:
 
 Optional:
 
+- `allow_ksm` (Boolean) Allow memory pages of this VM to be merged via KSM (Kernel Samepage Merging). PVE default is `true`; `false` adds `mem-merge=off` to the QEMU machine flags, useful for VMs with PCI passthrough where all guest memory is pinned. Takes effect on the next VM start.
 - `balloon` (Number) Minimum guaranteed memory in MiB via balloon device. This is the floor amount of RAM that is always guaranteed to the VM. Setting to `0` disables the balloon driver entirely. 
 
 **How it works:** The host can reclaim memory between `balloon` and `size` when under memory pressure. The VM is guaranteed to always have at least `balloon` MiB available.

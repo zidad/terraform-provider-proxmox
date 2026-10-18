@@ -30,7 +30,8 @@ func NewValue(ctx context.Context, config *vms.GetResponseData, diags *diag.Diag
 		config.FloatingMemory == nil &&
 		config.FloatingMemoryShares == nil &&
 		config.Hugepages == nil &&
-		config.KeepHugepages == nil {
+		config.KeepHugepages == nil &&
+		config.AllowKSM == nil {
 		return NullValue()
 	}
 
@@ -40,6 +41,7 @@ func NewValue(ctx context.Context, config *vms.GetResponseData, diags *diag.Diag
 		Shares:        types.Int64PointerValue(asInt64Ptr(config.FloatingMemoryShares)),
 		Hugepages:     types.StringPointerValue(config.Hugepages),
 		KeepHugepages: types.BoolPointerValue(config.KeepHugepages.PointerBool()),
+		AllowKSM:      types.BoolPointerValue(config.AllowKSM.PointerBool()),
 	}
 
 	obj, d := types.ObjectValueFrom(ctx, attributeTypes(), mem)
@@ -96,6 +98,7 @@ func FillUpdateBody(
 	attribute.CheckDeleteBody(plan.Shares, state.Shares, updateBody, "shares")
 	attribute.CheckDeleteBody(plan.Hugepages, state.Hugepages, updateBody, "hugepages")
 	attribute.CheckDeleteBody(plan.KeepHugepages, state.KeepHugepages, updateBody, "keephugepages")
+	attribute.CheckDeleteBody(plan.AllowKSM, state.AllowKSM, updateBody, "allow-ksm")
 
 	if planValue.IsNull() {
 		return
@@ -115,6 +118,7 @@ func unpackOrEmpty(ctx context.Context, value Value, diags *diag.Diagnostics) Mo
 			Shares:        types.Int64Null(),
 			Hugepages:     types.StringNull(),
 			KeepHugepages: types.BoolNull(),
+			AllowKSM:      types.BoolNull(),
 		}
 	}
 
