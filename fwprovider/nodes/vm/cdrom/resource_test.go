@@ -34,6 +34,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cdrom"
 				cdrom = {
 					"ide3" = {}
@@ -48,6 +49,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cdrom"
 				cdrom = {
 					"ide3" = {},
@@ -67,6 +69,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cdrom"
 					cdrom = {
 						"scsi2" = {
@@ -87,6 +90,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cdrom"
 					cdrom = {
 						"scsi2" = {
@@ -109,6 +113,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cdrom"
 			}`),
 			Check: test.NoResourceAttributesSet(resourceName, []string{"cdrom.%"}),
@@ -124,6 +129,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cdrom"
 					cdrom = {
 						"ide3" = {}
@@ -138,6 +144,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cdrom"
 				}`),
 				Check: test.NoResourceAttributesSet(resourceName, []string{"cdrom.%"}),
@@ -148,6 +155,7 @@ func TestAccResourceVM2CDROM(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cdrom"
 				cdrom = {
 					"scsi30" = {}

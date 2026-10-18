@@ -34,6 +34,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cpu"
 			}`),
 			Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{
@@ -49,6 +50,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cpu"
 				cpu = {
 					cores = 2
@@ -72,6 +74,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu"
 					cpu = {
 						# affinity = "0-1"          only root can set affinity
@@ -102,6 +105,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu"
 					cpu = {
 						cores = 4
@@ -135,6 +139,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-cpu-units-1"
 				cpu = {
 					cores = 1
@@ -157,6 +162,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-limit-int"
 					cpu = {
 						cores = 1
@@ -183,6 +189,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-limit-no-sockets"
 					cpu = {
 						cores = 1
@@ -197,6 +204,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-limit-no-sockets"
 					cpu = {
 						cores = 1
@@ -219,6 +227,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-remove"
 					cpu = {
 						cores = 2
@@ -234,6 +243,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-remove"
 				}`),
 				Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{
@@ -250,6 +260,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-units-default"
 				}`),
 			},
@@ -263,6 +274,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-x86-64-v4"
 					cpu = {
 						cores = 1
@@ -290,6 +302,7 @@ func TestAccResourceVM2CPU(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu-no-type"
 					cpu = {
 						cores = 2

@@ -32,6 +32,7 @@ func TestAccDatasourceVM(t *testing.T) {
 				Config: te.RenderConfig(`
 					resource "proxmox_vm" "test_vm" {
 						node_name = "{{.NodeName}}"
+						power_state = "stopped"
 						name      = "test-datasource-vm"
 						tags      = ["tag1", "tag2"]
 					}

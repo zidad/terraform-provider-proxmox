@@ -32,6 +32,7 @@ func TestAccResourceVM2VGA(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-vga"
 			}`),
 			Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{
@@ -43,6 +44,7 @@ func TestAccResourceVM2VGA(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-vga"
 				vga = {
 					type = "std"
@@ -63,6 +65,7 @@ func TestAccResourceVM2VGA(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-vga"
 					vga = {
 						type = "std"
@@ -83,6 +86,7 @@ func TestAccResourceVM2VGA(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu"
 					vga = {
 						type = "qxl"
@@ -103,6 +107,7 @@ func TestAccResourceVM2VGA(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-cpu"
 				}`),
 				Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{

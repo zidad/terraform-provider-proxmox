@@ -68,6 +68,7 @@ func TestAccProviderRootTicket(t *testing.T) {
 			config: `
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name      = "test-root-ticket-fwk"
 					cpu = {
 						architecture = "x86_64"

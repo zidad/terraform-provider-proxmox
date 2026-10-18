@@ -37,6 +37,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 			}`),
 			Check: resource.ComposeTestCheckFunc(
 				test.ResourceAttributes("proxmox_vm.test_vm", map[string]string{
@@ -51,6 +52,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				id = {{.TestVMID}}
 			}`),
 		}}},
@@ -58,6 +60,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "not a valid DNS name"
 			}`),
 			ExpectError: regexp.MustCompile(`name must be a valid DNS name`),
@@ -66,6 +69,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "vm.example.com"
 			}`),
 			Check: test.ResourceAttributes("proxmox_vm.test_vm", map[string]string{
@@ -77,6 +81,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-vm"
 					description = "test description"
 				}`),
@@ -89,6 +94,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-vm"
 				}`),
 				Check: resource.ComposeTestCheckFunc(
@@ -112,6 +118,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-tags"
 					tags = ["tag2", "tag1"]
 				}`),
@@ -124,6 +131,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-tags"
 					tags = ["tag1"]
 				}`),
@@ -136,6 +144,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-tags"
 					// no tags
 				}`),
@@ -148,6 +157,7 @@ func TestAccResourceVMShort(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-tags"
 					tags = []
 				}`),
@@ -160,6 +170,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				tags = ["", "tag1"]
 			}`),
 			ExpectError: regexp.MustCompile(`string length must be at least 1, got: 0`),
@@ -168,6 +179,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				tags = [" ", "tag1"]
 			}`),
 			ExpectError: regexp.MustCompile(`must be a non-empty and non-whitespace string`),
@@ -176,6 +188,7 @@ func TestAccResourceVMShort(t *testing.T) {
 			Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					description = trimspace(<<-EOT
 						my
 						description

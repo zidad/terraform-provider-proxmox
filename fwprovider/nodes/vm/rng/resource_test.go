@@ -32,6 +32,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-rng"
 			}`),
 			Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{
@@ -44,6 +45,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-rng"
 				rng = {
 					source = "/dev/urandom"
@@ -64,6 +66,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-rng"
 					rng = {
 						source = "/dev/urandom"
@@ -84,6 +87,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-rng"
 					rng = {
 						source = "/dev/random"
@@ -111,6 +115,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 			Config: te.RenderConfig(`
 			resource "proxmox_vm" "test_vm" {
 				node_name = "{{.NodeName}}"
+				power_state = "stopped"
 				name = "test-rng"
 				rng = {
 					source    = "/dev/urandom"
@@ -129,6 +134,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-rng"
 					rng = {
 						source = "/dev/urandom"
@@ -142,6 +148,7 @@ func TestAccResourceVM2RNG(t *testing.T) {
 				Config: te.RenderConfig(`
 				resource "proxmox_vm" "test_vm" {
 					node_name = "{{.NodeName}}"
+					power_state = "stopped"
 					name = "test-rng"
 				}`, test.WithRootPAMAuth()),
 				Check: test.NoResourceAttributesSet("proxmox_vm.test_vm", []string{
